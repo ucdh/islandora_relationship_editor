@@ -128,6 +128,17 @@ function get_possible_relationships($object_pid) {
     $options['CIDOC:P107_has_current_or_former_member'] = t('has current or former group member');
   }
 
+  // 'object' cModels for QuakeStudies can have weight for naive collection ordering.
+  if (in_array('islandora:collectionCModel', $object->models)
+   || in_array('islandora:compoundCModel', $object->models)
+   || in_array('islandora:sp_pdf', $object->models)
+    || in_array('islandora:sp_basic_image', $object->models)
+    || in_array('islandora:sp_videoCModel', $object->models)
+    || in_array('islandora:sp-audioCModel', $object->models)
+    || in_array('islandora:binaryObjectCModel', $object->models)) {
+    $options['qsr_rel:hasWeight'] = t('has weight');
+  }
+
   return $options;
 }
 

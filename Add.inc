@@ -13,6 +13,13 @@ function islandora_relationship_editor_add_relationships(array $form, array &$fo
     '#title' => t('Relationship'),
     '#options' => get_possible_relationships($object_pid),
   );
+
+  $form['weight'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Weight'),
+    '#description' => t('Objects can be ordered by weight, with lower numbers first. Must be integer, e.g. -1, 0, 1...'),
+  );
+
   $options = array(
     'general' => t('Person'),
     'tune' => t('Tune'),
@@ -69,14 +76,24 @@ function islandora_relationship_editor_add_relationships_submit($form, &$form_st
   if (!$object) {
     drupal_set_message("Fedora object doesn't exist.");
   }
-  $target = islandora_object_load($form_state['values']['target']);
-  if (!$target) {
-    drupal_set_message("Fedora object doesn't exist.");
-  }
-  $object->relationships->add(MYNS_URI, $form_state['values']['relationship'], $form_state['values']['target']);
 
-  if ($form_state['values']['is-symmetric'] == 1) {
-	  $target->relationships->add(MYNS_URI, $form_state['values']['sym-relationship'], $form_state['values']['this']);
+  // RM43776 Add weight as literal relation.
+  // @todo: Add validation, if relation is hasWeight, value must be integer, non-empty...?
+  // @todo: shift declaration of QSR_RELS_EXT_URI into more common module.
+  if ($form_state['values']['relationship'] == 'qsr_rel:hasWeight') {
+    $object->relationships->registerNamespace('qsr_rel', QSR_RELS_EXT_URI);
+    $object->relationships->add(QSR_RELS_EXT_URI, 'hasWeight', $form_state['values']['weight'], RELS_TYPE_INT);
+  }
+  else {
+    $target = islandora_object_load($form_state['values']['target']);
+    if (!$target) {
+      drupal_set_message("Fedora object doesn't exist.");
+    }
+    $object->relationships->add(MYNS_URI, $form_state['values']['relationship'], $form_state['values']['target']);
+
+    if ($form_state['values']['is-symmetric'] == 1) {
+      $target->relationships->add(MYNS_URI, $form_state['values']['sym-relationship'], $form_state['values']['this']);
+    }
   }
   $form_state['redirect'] = "islandora/object/{$object->id}/manage/relationships";
 }

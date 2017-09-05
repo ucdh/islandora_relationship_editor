@@ -9,16 +9,18 @@ function islandora_relationship_editor_display_relationships(array $form, array 
     exit;
   }
   $rels = $object->relationships->get();
+
   $create_table_rows = function($o) use ($object_pid) {
     #TODO: Can't create a delete path that uses the full namespace because it may contain forward slashes. is there another way to pass this argument than as a url?
     $delete_path = islandora_relationship_editor_get_delete_path($object_pid, $o['predicate']['namespace'], $o['predicate']['value'], $o['object']['value'] ? $o['object']['value'] : $o['object']['literal']);
     $o['relationship'] = $o['predicate']['namespace'] . $o['predicate']['value'];
-    if (isset($o['object']['value'])) {
+
+    if ($o['object']['literal']) {
+      $o['object'] = $o['object']['value'];
+    }
+    elseif (isset($o['object']['value'])) {
       $target = islandora_object_load($o['object']['value']);
       $o['object'] = $target ? $target->label . ' ('. $o['object']['value'] . ')' : t("WARNING: Target object no longer exists.") . ' (' . $o['object']['value'] . ')' ;
-    }
-    elseif (isset($o['object']['literal'])) {
-      $o['object'] = $o['object']['literal'];
     }
     else {
       $o['object'] = '';

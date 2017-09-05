@@ -49,9 +49,13 @@ function islandora_relationship_editor_delete_relationships_submit(array $form, 
     $namespace = $form_state['storage']['namespace'];
     $relationship = $form_state['storage']['relationship'];
     $targetPid = $form_state['storage']['targetPid'];
-    $object->relationships->remove($namespace, $relationship, $targetPid);
+    // Default type per https://github.com/Islandora/islandora/wiki/Working-With-Fedora-Objects-Programmatically-Via-Tuque#methods-3
+    $type = RELS_TYPE_URI;
+    // If we're dealing with an integer literal, change predicate type.
+    if (is_numeric($targetPid)) {
+      $type = RELS_TYPE_INT;
+    }
+    $object->relationships->remove($namespace, $relationship, $targetPid, $type);
     $form_state['redirect'] = 'islandora/object/' . $object->id . '/manage/relationships';
   }
 }
-
-
